@@ -13,5 +13,11 @@ file_path = os.path.join(base_dir,"../Data/global_indicators_raw.xlsx")
 
 
 # Load the data from the xlsx file
-df = pd.read_excel(file_path, sheet_name='Online Retail')
+raw_df = pd.read_excel(file_path, sheet_name='Online Retail')
+df = raw_df.copy()
 
+# Remove exact duplicate rows (keeping the first occurrence)
+before_rows = len(df)
+df.drop_duplicates(inplace=True)
+after_rows = len(df)
+print(f"Removed {before_rows - after_rows} duplicate rows.")
