@@ -20,7 +20,25 @@ For safety and reproducibility, I preserve a raw copy of the dataset before perf
 - Duplicates are removed across all columns, keeping the first occurrence of each row.
 - The number of rows removed is displayed when running the main script.
 
+
+### Cleaning Missing `Description` Values
+
+Identified and removed 1,454 rows where:
+- `Description` was missing (`NaN`)
+- `UnitPrice` was `0.0`
+- `CustomerID` was missing (`NaN`)
+
+These records appeared to be non-usable placeholder transactions with no meaningful product or customer information.
+
+**Impact:**  
+- **Total rows before removal:** 536,641  
+- **Total rows after removal:** 535,187  
+- **Rows removed:** 1,454  
+
+**Note:**  
+An alternative approach considered was filling missing `Description` values using their `StockCode`. However, a single `StockCode` can correspond to multiple product descriptions, making automatic filling unreliable.  
+
 ### Next Steps
-- Handle missing values in `Description` and `CustomerID`.
+- Handle missing values in`CustomerID`.
 - Standardize data types (e.g., convert `CustomerID` to integer/string where possible).
 - Further exploration for potential outliers.

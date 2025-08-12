@@ -21,3 +21,10 @@ before_rows = len(df)
 df.drop_duplicates(inplace=True)
 after_rows = len(df)
 print(f"Removed {before_rows - after_rows} duplicate rows.")
+
+# Cleaning the 'Description' column
+df.drop(df[(    df["Description"].isnull())
+             & (df["UnitPrice"]== 0.0) 
+             & (df["CustomerID"].isnull())
+            ].index,
+        inplace=True)
