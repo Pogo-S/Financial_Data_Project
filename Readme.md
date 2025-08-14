@@ -38,7 +38,16 @@ These records appeared to be non-usable placeholder transactions with no meaning
 **Note:**  
 An alternative approach considered was filling missing `Description` values using their `StockCode`. However, a single `StockCode` can correspond to multiple product descriptions, making automatic filling unreliable.  
 
+### Note on Missing CustomerID Values
+In this dataset, **133,583 rows** have missing `CustomerID` entries. These were intentionally left as `NaN` rather than replaced with a placeholder like `"Unknown"`.
+
+This decision was made because:
+
+- The number of rows affected is large, and these rows still contain valuable transactional information in other columns. Removing them would result in substantial data loss.
+- Keeping them as `NaN` preserves the column’s `float64` data type, avoiding potential compatibility issues during analysis or dashboard creation (e.g., mixing numeric IDs with strings).
+- By retaining these rows, we can still leverage them in analyses that don’t require `CustomerID` (e.g., sales trends, product performance) while handling the missing IDs separately if needed.
+
 ### Next Steps
 - Handle missing values in`CustomerID`.
 - Standardize data types (e.g., convert `CustomerID` to integer/string where possible).
-- Further exploration for potential outliers.
+- Further exploration for potential outliers.ok
