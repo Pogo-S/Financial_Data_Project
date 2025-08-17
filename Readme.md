@@ -105,16 +105,74 @@ Outliers detected: 360 rows
 ### Histogram: Distribution of Unit Prices
 
 **Key Insights:**
-- Most unit prices are clustered at lower values, with a few very high prices.
-- Logarithmic y-axis revealed extreme values clearly without distorting the overall distribution.
-- Confirms the presence of **outliers**, supporting the IQR and Z-score analysis.
-- Ensures the dataset is clean and ready for analysis or dashboards.
+- Most unit prices are clustered at very low values, with a few transactions at extremely high prices.  
+- Applied a **logarithmic y-axis** to reveal rare but extreme values without losing visibility of the dense lower range.  
+- Confirms the presence of **outliers**, supporting both IQR- and Z-score-based detection methods.  
+- Helps in understanding the spread of pricing data before cleaning and analysis.  
 
-### Scatter Plot: Unit Price vs Quantity
+---
 
-**Key Insights:**  
-- Most purchases are concentrated at lower quantities and moderate unit prices.  
-- A few high-quantity or high-price transactions act as outliers.  
-- Color mapping by `CustomerID` highlights patterns of repeat customers.  
-- Helps confirm trends and anomalies, ensuring the dataset is clean and ready for analysis or dashboards.
+### Violin Plot: Distribution of Z-Scores
 
+**Key Insights:**
+- Z-score shows how many standard deviations a value is away from the mean.  
+- Horizontal dashed lines at `+3` and `-3` mark the **outlier thresholds**.  
+- Most data points lie close to the center (within -3 to +3), while extreme tails clearly highlight outliers.  
+- The plot provides an intuitive view of the **concentration of normal values vs. extreme anomalies**.  
+- Complements the histogram by focusing on statistical deviation rather than raw values.  
+
+## Handling Extreme Outliers
+
+### Extreme Positive Outliers in `UnitPrice`
+
+Using **Z-score analysis**, we identified several rows with extremely high `UnitPrice` values.  
+The top 20 entries (highest Z-scores) include prices ranging from **$6,497** up to **$38,970**, corresponding to Z-scores as high as **400**.
+
+**Examples of detected outliers:**
+| InvoiceNo | StockCode | Description  | Quantity | UnitPrice | CustomerID | Country         | Z-Score |
+|-----------|-----------|--------------|----------|-----------|------------|----------------|---------|
+| 222681    | C556445   | Manual       | -1       | $38,970.00 | 15098.0    | United States  | 400.20  |
+| 524602    | C580605   | AMAZONFEE    | -1       | $17,836.46 | NaN        | United States  | 183.14  |
+| 43702     | C540117   | AMAZONFEE    | -1       | $16,888.02 | NaN        | United States  | 173.40  |
+| 173382    | 551697    | POSTAGE      | 1        | $8,142.75  | 16029.0    | United States  | 83.58   |
+| 262414    | C559917   | AMAZONFEE    | -1       | $6,497.47  | NaN        | United States  | 66.69   |
+
+**Observations:**
+- Many of these transactions are linked to **service-related items** such as:
+  - `AMAZONFEE` (Amazon marketplace fees)  
+  - `POSTAGE` (shipping/handling charges)  
+  - `Manual` adjustments  
+  - `Adjust bad debt`  
+- Since this dataset is about an **online retailer**, these unusually high `UnitPrice` values reflect **valid operational costs** (e.g., large postage charges, external marketplace fees).  
+- These values are therefore **not data errors**.
+
+**Conclusion:**  
+Although statistically extreme, these entries are valid and provide important context for financial and operational analysis.  
+Hence, **extreme positive values are retained** in the dataset for accuracy.
+
+### Extreme Negative Outliers in `UnitPrice` and Extreme Negative `Quantity`
+
+#### Problematic Invoice Rows (Extreme Negative `UnitPrice`)
+
+During my initial analysis, I identified two specific invoices as **problematic outliers** based on Z-score analysis of `UnitPrice`:
+
+- **InvoiceNo:** `A563187`  
+- **InvoiceNo:** `A563186`  
+
+These rows had extreme negative `UnitPrice` values and were inconsistent with normal online retail activity. To maintain data quality, I decided to remove them from the dataset.
+
+#### Handling Negative and Extreme Quantity Values
+
+During my initial exploration, I noticed that the dataset contains **negative values in the `Quantity` column**. At first, I understood these as **normal returns or cancellations**, which are expected in retail data.  
+
+However, during further analysis, I observed that some negative quantities were **extremely large**, going as low as `-80,995`. These extreme negative values are not realistic for typical sales and are likely **bulk adjustments, stock corrections, or data entry errors**.
+**Note:**
+Initially, there were 9,725 rows with negative quantities, ranging from `-1` to `-80,995`. After filtering to retain only normal returns (quantities ≥ -10), the number of negative rows reduced to 7,642, with quantities now ranging from `-10` to `-1`. This step helped preserve meaningful sales and return data while removing extreme negative transactions that could distort analysis.
+
+
+
+
+
+
+
+> ⚠️ **Reminder:** Before finalizing the README, make sure to change all instances of "we" to "I" to reflect that this project is done individually.
