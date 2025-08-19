@@ -1,178 +1,94 @@
-# Financial Data Project
+# E-Commerce Sales Data Cleaning & Analytics Pipeline
 
-Work in progress — currently building the data cleaning pipeline.  
-README will be updated once cleaning and preprocessing steps are complete.
+This project demonstrates how I clean, transform, and analyze raw transactional data from a UK-based online retailer. Using Python, SQL/BigQuery, dbt, and Looker Studio, I built an end-to-end data pipeline to generate actionable business insights and interactive analytics dashboards. The workflow reflects industry best practices for data analytics and engineering.
 
+## Dataset Overview
 
-# E-Commerce Sales Data Cleaning & Analysis
+I used the [UCI Online Retail dataset](https://archive.ics.uci.edu/dataset/352/online+retail), which includes transactional records from a UK-based online retailer between December 2010 and December 2011. The dataset contains 541,909 rows and 8 columns:
 
-Dataset: [UCI Online Retail](https://archive.ics.uci.edu/dataset/352/online+retail)  
-Transactional data from a UK-based online retailer (1 Dec 2010 – 9 Dec 2011), containing **541,909 rows** and **8 columns** such as InvoiceNo, StockCode, Description, Quantity, InvoiceDate, UnitPrice, CustomerID, and Country.
+- InvoiceNo
+- StockCode
+- Description
+- Quantity
+- InvoiceDate
+- UnitPrice
+- CustomerID
+- Country
 
-Goal: Clean, transform, and analyze the dataset using **Python**, **SQL/BigQuery**, **dbt**, and **Looker Studio** to produce business insights and dashboards.
+This rich dataset offers insight into customer purchasing behavior, sales trends, product performance, and transactional patterns within the e-commerce domain.
 
-For detailed exploratory data analysis, refer to the [EDA Notebook](scripts/Eda.ipynb).
+## Project Goal
 
-For safety and reproducibility, I preserve a raw copy of the dataset before performing cleaning steps. This ensures all transformations are traceable and reversible.
+My goal is to build a robust, end-to-end data pipeline that cleans, transforms, and analyzes the online retail transactional data to support insightful business decisions. 
 
-## Data Cleaning
-- Added duplicate detection and removal in both the **EDA notebook** (`scripts/eda.ipynb`) and **main processing script** (`scripts/your_script.py`).
-- Duplicates are removed across all columns, keeping the first occurrence of each row.
-- The number of rows removed is displayed when running the main script.
+Using Python, SQL/BigQuery, dbt, and Looker Studio, I focus on producing clean, reliable datasets and interactive dashboards that highlight key sales trends, customer behaviors, and product performance metrics.
 
+Preserving data integrity and reproducibility is central to my approach, so I maintain a raw dataset snapshot before executing any data cleaning or transformation steps.
 
-### Cleaning Missing `Description` Values
+## Data Cleaning & Preprocessing
 
-Identified and removed 1,454 rows where:
-- `Description` was missing (`NaN`)
-- `UnitPrice` was `0.0`
-- `CustomerID` was missing (`NaN`)
+To ensure the dataset is accurate and reliable for analysis, I performed the following cleaning steps:
 
-These records appeared to be non-usable placeholder transactions with no meaningful product or customer information.
+- **Duplicate Removal:**  
+  Identified and removed 5,268 duplicate rows by checking for exact duplicates across all columns, keeping only the first occurrence.
 
-**Impact:**  
-- **Total rows before removal:** 536,641  
-- **Total rows after removal:** 535,187  
-- **Rows removed:** 1,454  
+- **Handling Missing Descriptions:**  
+  Removed 1,454 placeholder transactions where `Description` was missing, `UnitPrice` was zero, and `CustomerID` was also missing. These records offered no actionable information.
 
-**Note:**  
-An alternative approach considered was filling missing `Description` values using their `StockCode`. However, a single `StockCode` can correspond to multiple product descriptions, making automatic filling unreliable.  
+- **Problematic Invoice Exclusion:**  
+  Excluded two invoices (`A563187`, `A563186`) with extreme negative `UnitPrice` outliers to maintain data integrity.
 
-### Note on Missing CustomerID Values
-In this dataset, **133,583 rows** have missing `CustomerID` entries. These were intentionally left as `NaN` rather than replaced with a placeholder like `"Unknown"`.
+- **Filtering Negative Quantities:**  
+  Negative quantities generally represent returns or cancellations. I filtered out extreme negative values by keeping only rows where `Quantity` was greater than or equal to -10, preserving legitimate returns while removing improbable bulk adjustments.
 
-This decision was made because:
+These rigorous cleaning steps reduced noise and anomalies, preparing the dataset for meaningful analysis and modeling.
 
-- The number of rows affected is large, and these rows still contain valuable transactional information in other columns. Removing them would result in substantial data loss.
-- Keeping them as `NaN` preserves the column’s `float64` data type, avoiding potential compatibility issues during analysis or dashboard creation (e.g., mixing numeric IDs with strings).
-- By retaining these rows, we can still leverage them in analyses that don’t require `CustomerID` (e.g., sales trends, product performance) while handling the missing IDs separately if needed.
+## Outlier Detection & Analysis
 
-## Data Type Validation
-Verified that all columns have appropriate data types using Python (`df.info()`).  
-All numeric, categorical, and datetime columns are correctly typed. No corrections were required.
+To identify and manage extreme or unusual values that could distort analysis, I applied two complementary statistical methods:
 
-## Descriptive statistics
+- **Interquartile Range (IQR) Method:**  
+  Using the 25th percentile (Q1) and 75th percentile (Q3), I calculated the interquartile range (IQR) and flagged values outside the range \[Q1 - 1.5 * IQR, Q3 + 1.5 * IQR\] as outliers.  
+  This method detected 39,450 outliers in the `UnitPrice` column, helping identify transactions with unusually high or low prices.
 
-### Outlier Detection using IQR (Interquartile Range)
+- **Z-score Method:**  
+  I computed the Z-score for `UnitPrice` to measure how many standard deviations values lie from the mean. Transactions with absolute Z-scores greater than 3 were flagged as outliers. This technique found 360 extreme outliers.
 
-Outliers in numeric data can skew analysis and affect insights. In this project, the IQR method was used to detect outliers in the `UnitPrice` column.  
+**Handling Outliers:**
 
-**Methodology:**
-1. Calculate the 25th percentile (Q1) and 75th percentile (Q3) of the column.
-2. Compute the Interquartile Range (IQR = Q3 - Q1).
-3. Define the lower bound (LB = Q1 - 1.5 * IQR) and upper bound (UB = Q3 + 1.5 * IQR).
-4. Any value below LB or above UB is flagged as an outlier.
+- Positive outliers, such as high postage fees and marketplace charges, were retained since they reflect valid business operations.
+- Extreme negative outliers, including certain invoices with aberrant values, were removed to improve data quality.
+- Negative quantities were constrained to reasonable returns (Quantity ≥ -10) to filter out unlikely bulk adjustments.
 
-**Implementation:**
-- A reusable function `detect_outliers_iqr()` was created to return the outlier values and bounds.
-- For the `UnitPrice` column, the function identified the number of outlier rows.
-- Full rows corresponding to these outliers were also extracted for further inspection.
+This two-pronged outlier detection ensures robust data integrity and supports reliable downstream analytics.
 
-**Example Output for `UnitPrice`:**
-Lower Bound: -3.07
-Upper Bound: 8.45
-Outliers detected: 39450 rows
+## Visualizations & Key Insights
 
-**Purpose:**
-- Detecting outliers ensures the dataset is clean and reliable for analysis and visualization.
-- Helps identify unusual transactions or extreme values for further investigation.
+To better understand the distribution and characteristics of the dataset, I created key visualizations:
 
-### Outlier Detection using Z-score (Revised Function)
+- **Histogram of Unit Prices:**  
+  A histogram with a logarithmic y-axis revealed that most transactions have low unit prices, while a small number exhibit extremely high values. This visualization helped confirm the presence of outliers detected statistically and provided insight into price distribution skewness.
 
-Z-score identifies how many standard deviations a value is from the mean. Values with `|z_score| > 3` are considered outliers.
+- **Violin Plot of Z-Scores:**  
+  The violin plot of Z-scores illustrated the concentration of most data points near the mean within ±3 standard deviations and highlighted the presence of extreme positive and negative outliers beyond these thresholds.
 
-**Methodology:**
-1. Calculate the mean and standard deviation of the column (`UnitPrice`).
-2. Compute Z-score: `z_score = (value - mean) / std`.
-3. Flag rows where `|z_score| > threshold` as outliers.
+**Key Observations:**
 
-**Implementation:**
-- A reusable function `detect_outliers_z()` was created.
-- Returns both the **outlier values** (`Z_Outliers`) and the **full DataFrame rows** (`Z_Outliers_df`), along with mean and std.
-**Example Output for `UnitPrice`:**
-Mean: 4.645
-Standard Deviation: 97.365
-Outliers detected: 360 rows
+- The majority of sales involve relatively low-priced items, consistent with typical online retail patterns.
+- Extreme positive values in `UnitPrice` correspond to valid entries such as postage fees and marketplace charges, which are important for financial analysis.
+- Negative values in quantity confirm the presence of returns and cancellations, but extreme negative values were filtered out to improve data quality.
 
+These visualizations complement the statistical outlier detection and emphasize the importance of nuanced data cleaning for robust analysis.
 
-**Purpose:**
-- Detects extreme values based on standard deviations.
-- Ensures reliable analysis by highlighting unusual transactions.
-- Complements IQR-based detection for thorough outlier analysis.
+## Summary & Next Steps
 
-## Graphs
+This project demonstrates a comprehensive approach to cleaning and preparing transactional retail data for analytics. Through rigorous duplicate removal, handling of missing and anomalous values, and detailed outlier detection, I created a reliable and analysis-ready dataset.
 
-### Histogram: Distribution of Unit Prices
+Moving forward, the next phases will focus on:
 
-**Key Insights:**
-- Most unit prices are clustered at very low values, with a few transactions at extremely high prices.  
-- Applied a **logarithmic y-axis** to reveal rare but extreme values without losing visibility of the dense lower range.  
-- Confirms the presence of **outliers**, supporting both IQR- and Z-score-based detection methods.  
-- Helps in understanding the spread of pricing data before cleaning and analysis.  
+- Developing advanced data transformations and modeling using **dbt** to build scalable analytical tables.
+- Implementing optimized SQL pipelines in **Google BigQuery** for efficient data processing and aggregation.
+- Designing and constructing interactive, business-focused dashboards using **Looker Studio** or **Power BI** to deliver actionable insights.
+- Incorporating additional data quality checks and automated monitoring to maintain pipeline reliability.
 
----
-
-### Violin Plot: Distribution of Z-Scores
-
-**Key Insights:**
-- Z-score shows how many standard deviations a value is away from the mean.  
-- Horizontal dashed lines at `+3` and `-3` mark the **outlier thresholds**.  
-- Most data points lie close to the center (within -3 to +3), while extreme tails clearly highlight outliers.  
-- The plot provides an intuitive view of the **concentration of normal values vs. extreme anomalies**.  
-- Complements the histogram by focusing on statistical deviation rather than raw values.  
-
-## Handling Extreme Outliers
-
-### Extreme Positive Outliers in `UnitPrice`
-
-Using **Z-score analysis**, we identified several rows with extremely high `UnitPrice` values.  
-The top 20 entries (highest Z-scores) include prices ranging from **$6,497** up to **$38,970**, corresponding to Z-scores as high as **400**.
-
-**Examples of detected outliers:**
-| InvoiceNo | StockCode | Description  | Quantity | UnitPrice | CustomerID | Country         | Z-Score |
-|-----------|-----------|--------------|----------|-----------|------------|----------------|---------|
-| 222681    | C556445   | Manual       | -1       | $38,970.00 | 15098.0    | United States  | 400.20  |
-| 524602    | C580605   | AMAZONFEE    | -1       | $17,836.46 | NaN        | United States  | 183.14  |
-| 43702     | C540117   | AMAZONFEE    | -1       | $16,888.02 | NaN        | United States  | 173.40  |
-| 173382    | 551697    | POSTAGE      | 1        | $8,142.75  | 16029.0    | United States  | 83.58   |
-| 262414    | C559917   | AMAZONFEE    | -1       | $6,497.47  | NaN        | United States  | 66.69   |
-
-**Observations:**
-- Many of these transactions are linked to **service-related items** such as:
-  - `AMAZONFEE` (Amazon marketplace fees)  
-  - `POSTAGE` (shipping/handling charges)  
-  - `Manual` adjustments  
-  - `Adjust bad debt`  
-- Since this dataset is about an **online retailer**, these unusually high `UnitPrice` values reflect **valid operational costs** (e.g., large postage charges, external marketplace fees).  
-- These values are therefore **not data errors**.
-
-**Conclusion:**  
-Although statistically extreme, these entries are valid and provide important context for financial and operational analysis.  
-Hence, **extreme positive values are retained** in the dataset for accuracy.
-
-### Extreme Negative Outliers in `UnitPrice` and Extreme Negative `Quantity`
-
-#### Problematic Invoice Rows (Extreme Negative `UnitPrice`)
-
-During my initial analysis, I identified two specific invoices as **problematic outliers** based on Z-score analysis of `UnitPrice`:
-
-- **InvoiceNo:** `A563187`  
-- **InvoiceNo:** `A563186`  
-
-These rows had extreme negative `UnitPrice` values and were inconsistent with normal online retail activity. To maintain data quality, I decided to remove them from the dataset.
-
-#### Handling Negative and Extreme Quantity Values
-
-During my initial exploration, I noticed that the dataset contains **negative values in the `Quantity` column**. At first, I understood these as **normal returns or cancellations**, which are expected in retail data.  
-
-However, during further analysis, I observed that some negative quantities were **extremely large**, going as low as `-80,995`. These extreme negative values are not realistic for typical sales and are likely **bulk adjustments, stock corrections, or data entry errors**.
-**Note:**
-Initially, there were 9,725 rows with negative quantities, ranging from `-1` to `-80,995`. After filtering to retain only normal returns (quantities ≥ -10), the number of negative rows reduced to 7,642, with quantities now ranging from `-10` to `-1`. This step helped preserve meaningful sales and return data while removing extreme negative transactions that could distort analysis.
-
-
-
-
-
-
-
-> ⚠️ **Reminder:** Before finalizing the README, make sure to change all instances of "we" to "I" to reflect that this project is done individually.
+These steps aim to build a robust end-to-end analytics workflow aligned with industry best practices and business needs.
