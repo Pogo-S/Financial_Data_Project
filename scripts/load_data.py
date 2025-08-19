@@ -35,4 +35,6 @@ df = df[~df["InvoiceNo"].isin(problematic_invoices)]
 # Filter out extreme negative Quantity values, keeping only normal returns (Quantity >= -10)
 df = df[df['Quantity'] >= -10]
 
-# After running this script, df contains the cleaned dataset ready for further analysis or transformation
+# Export the cleaned dataset for subsequent loading and analysis
+output_csv_path = os.path.join(base_dir, '../Cleaned_data/cleaned_retail_data.csv')
+df.to_csv(output_csv_path, index=False)
