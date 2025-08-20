@@ -1,6 +1,6 @@
 # E-Commerce Sales Data Cleaning & Analytics Pipeline
 
-This project demonstrates how I clean, transform, and analyze raw transactional data from a UK-based online retailer. Using Python, SQL/BigQuery, dbt, and Looker Studio, I built an end-to-end data pipeline to generate actionable business insights and interactive analytics dashboards. The workflow reflects industry best practices for data analytics and engineering.
+This project demonstrates how I clean, transform, and analyze raw transactional data from a UK-based online retailer. Using Python, SQL/BigQuery, and Looker Studio, I built an end-to-end data pipeline to generate actionable business insights and interactive analytics dashboards. The workflow reflects industry best practices for data analytics and engineering.
 
 ## Dataset Overview
 
@@ -21,7 +21,7 @@ This rich dataset offers insight into customer purchasing behavior, sales trends
 
 My goal is to build a robust, end-to-end data pipeline that cleans, transforms, and analyzes the online retail transactional data to support insightful business decisions. 
 
-Using Python, SQL/BigQuery, dbt, and Looker Studio, I focus on producing clean, reliable datasets and interactive dashboards that highlight key sales trends, customer behaviors, and product performance metrics.
+Using Python, SQL/BigQuery, and Looker Studio, I focus on producing clean, reliable datasets and interactive dashboards that highlight key sales trends, customer behaviors, and product performance metrics.
 
 Preserving data integrity and reproducibility is central to my approach, so I maintain a raw dataset snapshot before executing any data cleaning or transformation steps.
 
