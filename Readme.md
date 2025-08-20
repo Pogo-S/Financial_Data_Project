@@ -69,8 +69,14 @@ To better understand the distribution and characteristics of the dataset, I crea
 - **Histogram of Unit Prices:**  
   A histogram with a logarithmic y-axis revealed that most transactions have low unit prices, while a small number exhibit extremely high values. This visualization helped confirm the presence of outliers detected statistically and provided insight into price distribution skewness.
 
+  📸 **Screenshot**  
+![Histogram](screenshots/Histogram_Distribution_of_Unit_Prices.png)
+
 - **Violin Plot of Z-Scores:**  
   The violin plot of Z-scores illustrated the concentration of most data points near the mean within ±3 standard deviations and highlighted the presence of extreme positive and negative outliers beyond these thresholds.
+
+  📸 **Screenshot**  
+![Violin_Plot](screenshots/Violin_Plot.png)
 
 **Key Observations:**
 
@@ -80,15 +86,39 @@ To better understand the distribution and characteristics of the dataset, I crea
 
 These visualizations complement the statistical outlier detection and emphasize the importance of nuanced data cleaning for robust analysis.
 
-## Summary & Next Steps
+## BigQuery Data Modeling and Views
 
-This project demonstrates a comprehensive approach to cleaning and preparing transactional retail data for analytics. Through rigorous duplicate removal, handling of missing and anomalous values, and detailed outlier detection, I created a reliable and analysis-ready dataset.
+After cleaning the data, reusable views were created in BigQuery to simplify analysis and reporting.
 
-Moving forward, the next phases will focus on:
+- Views enable fast, aggregated queries and act as reliable data sources for dashboards built in Looker Studio.  
+- All view SQL scripts are saved in the `sql/` folder for easy maintenance and reuse.  
+- This approach demonstrates skills in both data cleaning and cloud-based data modeling, forming a solid foundation for scalable analytics.
 
-- Developing advanced data transformations and modeling using **dbt** to build scalable analytical tables.
-- Implementing optimized SQL pipelines in **Google BigQuery** for efficient data processing and aggregation.
-- Designing and constructing interactive, business-focused dashboards using **Looker Studio** or **Power BI** to deliver actionable insights.
-- Incorporating additional data quality checks and automated monitoring to maintain pipeline reliability.
+### Combined Sales View
 
-These steps aim to build a robust end-to-end analytics workflow aligned with industry best practices and business needs.
+A reusable view created in BigQuery that consolidates sales data by country, year, month, and product for streamlined analysis and reporting.
+
+- **Purpose:** Provides aggregated sales revenue (`Quantity * UnitPrice`) by country, product, and time for a unified data source.  
+- **Description:**  
+  Extracts `Country`, year and month from `InvoiceDate`, product details (`StockCode`, `Description`), and calculates total revenue grouped by these dimensions.  
+- **Usage:**  
+  Run this script in BigQuery to create the `combined_sales` view within the `retail_data` dataset.  
+  This view acts as a single source for all Looker Studio dashboards and reports, eliminating the need for data blending.
+
+## Looker Studio Dashboard
+
+This interactive dashboard visualizes retail sales data with the following features:
+
+- **Sales Trends:** Vertical bar charts showing monthly sales comparison between years.  
+- **Top Retailers:** Ranked tables highlighting best-selling products by revenue.  
+- **Geographic Insights:** Geo chart and filters allowing users to explore sales by country.  
+- **Interactive Filtering:** Country filter control applies across multiple charts for synchronized analysis.
+
+## Project Links
+
+Explore the interactive dashboard and view the SQL scripts used to build the data models:
+
+- Live Looker Studio Dashboard: [Retail Sales Dashboard](https://lookerstudio.google.com/reporting/99e94079-96ca-4621-8e28-8b1dcdd59174)  
+
+📸 **Screenshot**  
+![Dashboard](screenshots/Dashboard.png)
